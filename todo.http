@@ -1,2 +1,219 @@
-GET http://localhost:3000
+### Todo App API Testing
+### Base URL: http://localhost:3000
+###
+### INSTRUCTIONS:
+### 1. Start the development server: npm run start:dev
+### 2. Execute requests in order for best testing experience
+### 3. Variable @taskId is automatically captured from createTask3 response
+### 4. Variable @updateTaskId is captured for empty update testing
+### 5. Use VS Code REST Client extension or similar HTTP client
+###
 
+### Variables
+@baseUrl = http://localhost:3000
+@userId = test-user-123
+
+### Health Check - Test basic connectivity
+GET {{baseUrl}}
+
+###
+
+### 1. GET all tasks (initially empty)
+GET {{baseUrl}}/tasks
+
+###
+
+### 2. CREATE Task 1 - Todo task
+# @name createTask1
+POST {{baseUrl}}/tasks
+Content-Type: application/json
+
+{
+  "title": "Learn NestJS",
+  "description": "Complete the NestJS tutorial and build a todo app",
+  "status": "TODO",
+  "userId": "{{userId}}"
+}
+
+###
+
+### 3. CREATE Task 2 - In Progress task
+# @name createTask2
+POST {{baseUrl}}/tasks
+Content-Type: application/json
+
+{
+  "title": "Set up database",
+  "description": "Configure PostgreSQL database with Prisma ORM",
+  "status": "IN_PROGRESS",
+  "userId": "{{userId}}"
+}
+
+###
+
+### 4. CREATE Task 3 - Done task (save ID for later operations)
+# @name createTask3
+POST {{baseUrl}}/tasks
+Content-Type: application/json
+
+{
+  "title": "Write unit tests",
+  "description": "Create comprehensive unit tests for service and controller",
+  "status": "DONE",
+  "userId": "{{userId}}"
+}
+
+###
+
+### 5. GET all tasks (should show 3 tasks)
+GET {{baseUrl}}/tasks
+
+###
+
+### 6. GET specific task using saved ID from Task 3
+@taskId = {{createTask3.response.body.id}}
+GET {{baseUrl}}/tasks/{{taskId}}
+
+###
+
+### 7. UPDATE Task 3 - Change status and title
+PUT {{baseUrl}}/tasks/{{taskId}}
+Content-Type: application/json
+
+{
+  "title": "Write comprehensive tests",
+  "description": "Create unit tests, integration tests, and e2e tests",
+  "status": "IN_PROGRESS"
+}
+
+###
+
+### 8. GET updated task to verify changes
+GET {{baseUrl}}/tasks/{{taskId}}
+
+###
+
+### 9. UPDATE Task 3 - Partial update (only status)
+PUT {{baseUrl}}/tasks/{{taskId}}
+Content-Type: application/json
+
+{
+  "status": "DONE"
+}
+
+###
+
+### 10. GET all tasks (verify update)
+GET {{baseUrl}}/tasks
+
+###
+
+### 11. DELETE Task 3
+DELETE {{baseUrl}}/tasks/{{taskId}}
+
+###
+
+### 12. GET all tasks (should show 2 tasks after deletion)
+GET {{baseUrl}}/tasks
+
+###
+
+### 13. GET deleted task (should return 404)
+GET {{baseUrl}}/tasks/{{taskId}}
+
+###
+
+### Error Testing
+
+### 14. GET non-existent task
+GET {{baseUrl}}/tasks/non-existent-id
+
+###
+
+### 15. UPDATE non-existent task
+PUT {{baseUrl}}/tasks/non-existent-id
+Content-Type: application/json
+
+{
+  "title": "This should fail",
+  "status": "TODO"
+}
+
+###
+
+### 16. DELETE non-existent task
+DELETE {{baseUrl}}/tasks/non-existent-id
+
+###
+
+### Additional Test Cases
+
+### 17. CREATE task with minimal data (no status - should default to TODO)
+POST {{baseUrl}}/tasks
+Content-Type: application/json
+
+{
+  "title": "Minimal task",
+  "description": "Task with default status",
+  "userId": "{{userId}}"
+}
+
+###
+
+### 18. CREATE task with missing fields (testing validation)
+POST {{baseUrl}}/tasks
+Content-Type: application/json
+
+{
+  "title": "Task without description",
+  "status": "TODO",
+  "userId": "{{userId}}"
+}
+
+###
+
+### 19. CREATE task with invalid status
+POST {{baseUrl}}/tasks
+Content-Type: application/json
+
+{
+  "title": "Task with invalid status",
+  "description": "This tests invalid status handling",
+  "status": "INVALID_STATUS",
+  "userId": "{{userId}}"
+}
+
+###
+
+### 20. UPDATE with empty values
+# First create a task to update
+# @name taskForEmptyUpdate
+POST {{baseUrl}}/tasks
+Content-Type: application/json
+
+{
+  "title": "Task for empty update test",
+  "description": "Will test empty value updates",
+  "status": "TODO",
+  "userId": "{{userId}}"
+}
+
+###
+
+@updateTaskId = {{taskForEmptyUpdate.response.body.id}}
+
+### UPDATE with empty title
+PUT {{baseUrl}}/tasks/{{updateTaskId}}
+Content-Type: application/json
+
+{
+  "title": "",
+  "description": "Updated description"
+}
+
+###
+
+### Final cleanup - GET all tasks to see final state
+GET {{baseUrl}}/tasks
+
+###
