@@ -3,7 +3,8 @@ import { TasksController } from './tasks.controller';
 import { CreateTaskDto } from '../task/create-task.dto';
 import { UpdateTaskDto } from '../task/update-task.dto';
 import { TaskStatus } from '../task/task-status.enum';
-import type { Task } from '../task/task.interface';
+import { TasksService } from './tasks.service';
+import { NotFoundException } from '@nestjs/common';
 
 describe('TasksController', () => {
   let controller: TasksController;
@@ -11,6 +12,7 @@ describe('TasksController', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [TasksController],
+      providers: [TasksService],
     }).compile();
 
     controller = module.get<TasksController>(TasksController);
@@ -34,13 +36,27 @@ describe('TasksController', () => {
 
   describe('getOneTask', () => {
     it('should return a task object', () => {
-      const result = controller.getOneTask();
+      const task: CreateTaskDto = {
+        title: 'task1',
+        description: 'description 1',
+        status: TaskStatus.TODO,
+        userId: '1',
+      };
+      const newTask = controller.createTask(task);
+      const result = controller.getOneTask({ id: newTask.id });
       expect(result).toBeDefined();
       expect(typeof result).toBe('object');
     });
 
     it('should return a task with all required properties', () => {
-      const result = controller.getOneTask();
+      const task: CreateTaskDto = {
+        title: 'task1',
+        description: 'description 1',
+        status: TaskStatus.TODO,
+        userId: '1',
+      };
+      const newTask = controller.createTask(task);
+      const result = controller.getOneTask({ id: newTask.id });
       expect(result).toHaveProperty('id');
       expect(result).toHaveProperty('status');
       expect(result).toHaveProperty('title');
@@ -49,8 +65,15 @@ describe('TasksController', () => {
     });
 
     it('should return a task with correct data types', () => {
-      const result = controller.getOneTask();
-      expect(typeof result.id).toBe('number');
+      const task: CreateTaskDto = {
+        title: 'task1',
+        description: 'description 1',
+        status: TaskStatus.TODO,
+        userId: '1',
+      };
+      const newTask = controller.createTask(task);
+      const result = controller.getOneTask({ id: newTask.id });
+      expect(typeof result.id).toBe('string');
       expect(typeof result.status).toBe('string');
       expect(typeof result.title).toBe('string');
       expect(typeof result.description).toBe('string');
@@ -58,20 +81,27 @@ describe('TasksController', () => {
     });
 
     it('should return a task with valid status enum value', () => {
-      const result = controller.getOneTask();
+      const task: CreateTaskDto = {
+        title: 'task1',
+        description: 'description 1',
+        status: TaskStatus.TODO,
+        userId: '1',
+      };
+      const newTask = controller.createTask(task);
+      const result = controller.getOneTask({ id: newTask.id });
       expect(Object.values(TaskStatus)).toContain(result.status);
     });
 
     it('should return the expected sample task', () => {
-      const result = controller.getOneTask();
-      const expectedTask: Task = {
-        id: 1,
+      const task: CreateTaskDto = {
+        title: 'task1',
+        description: 'description 1',
         status: TaskStatus.TODO,
-        title: 'Sample Task',
-        description: 'This is a sample task',
-        userId: 'user1',
+        userId: '1',
       };
-      expect(result).toEqual(expectedTask);
+      const newTask = controller.createTask(task);
+      const result = controller.getOneTask({ id: newTask.id });
+      expect(result).toEqual(newTask);
     });
   });
 
@@ -99,8 +129,7 @@ describe('TasksController', () => {
 
       const result = controller.createTask(createTaskDto);
       expect(result).toHaveProperty('id');
-      expect(typeof result.id).toBe('number');
-      expect(result.id).toBeGreaterThan(0);
+      expect(typeof result.id).toBe('string');
     });
 
     it('should return a task with the provided data', () => {
@@ -168,35 +197,61 @@ describe('TasksController', () => {
   });
 
   describe('updateTask', () => {
+    const createTaskDto: CreateTaskDto = {
+      status: TaskStatus.TODO,
+      title: 'Task',
+      description: 'Description',
+      userId: 'user1',
+    };
     it('should return the update data', () => {
+      const createdTask = controller.createTask(createTaskDto);
       const updateTaskDto: UpdateTaskDto = {
         status: TaskStatus.IN_PROGRESS,
         title: 'Updated Task',
       };
+      const expectedResult = {
+        ...createdTask,
+        ...updateTaskDto,
+      };
 
-      const result = controller.updateTask(updateTaskDto);
+      const result = controller.updateTask(
+        { id: createdTask.id },
+        updateTaskDto,
+      );
       expect(result).toBeDefined();
-      expect(result).toEqual(updateTaskDto);
+      expect(result).toEqual(expectedResult);
     });
 
     it('should handle partial updates', () => {
+      const createdTask = controller.createTask(createTaskDto);
       const updateTaskDto: UpdateTaskDto = {
         status: TaskStatus.DONE,
       };
+      const expectResult = {
+        ...createdTask,
+        ...updateTaskDto,
+      };
 
-      const result = controller.updateTask(updateTaskDto);
-      expect(result).toEqual(updateTaskDto);
+      const result = controller.updateTask(
+        { id: createdTask.id },
+        updateTaskDto,
+      );
+      expect(result).toEqual(expectResult);
       expect(result.status).toBe(TaskStatus.DONE);
     });
 
     it('should handle empty update', () => {
+      const createdTask = controller.createTask(createTaskDto);
       const updateTaskDto: UpdateTaskDto = {};
-
-      const result = controller.updateTask(updateTaskDto);
-      expect(result).toEqual(updateTaskDto);
+      const result = controller.updateTask(
+        { id: createdTask.id },
+        updateTaskDto,
+      );
+      expect(result).toEqual(createdTask);
     });
 
     it('should handle full update', () => {
+      const createdTask = controller.createTask(createTaskDto);
       const updateTaskDto: UpdateTaskDto = {
         status: TaskStatus.DONE,
         title: 'Fully Updated Task',
@@ -204,20 +259,28 @@ describe('TasksController', () => {
         userId: 'user3',
       };
 
-      const result = controller.updateTask(updateTaskDto);
-      expect(result).toEqual(updateTaskDto);
+      const result = controller.updateTask(
+        { id: createdTask.id },
+        updateTaskDto,
+      );
+      expect(result).toEqual({ ...updateTaskDto, id: createdTask.id });
     });
   });
 
   describe('deleteTask', () => {
-    it('should return null', () => {
-      const result = controller.deleteTask();
-      expect(result).toBeNull();
-    });
-
-    it('should be defined', () => {
-      expect(controller.deleteTask).toBeDefined();
-      expect(typeof controller.deleteTask).toBe('function');
+    const createTaskDto: CreateTaskDto = {
+      status: TaskStatus.TODO,
+      title: 'Task',
+      description: 'Description',
+      userId: 'user1',
+    };
+    it('should delete task by id', () => {
+      const createdTask = controller.createTask(createTaskDto);
+      expect(createdTask).toBeDefined();
+      controller.deleteTask({ id: createdTask.id });
+      expect(() => {
+        controller.getOneTask({ id: createdTask.id });
+      }).toThrow(NotFoundException);
     });
   });
 });
