@@ -1,7 +1,7 @@
 import { TaskStatus } from './task-status.enum';
 
 export interface Task {
-  id: number;
+  id: string;
   status: TaskStatus;
   title: string;
   description: string;
