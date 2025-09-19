@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
-import * as request from 'supertest';
+import request from 'supertest';
 import { App } from 'supertest/types';
 import { AppModule } from '../src/app.module';
 import { TaskStatus } from '../src/task/task-status.enum';
@@ -24,10 +24,7 @@ describe('TaskController (e2e)', () => {
 
   describe('GET /tasks', () => {
     it('should return empty array when no tasks exist for user', () => {
-      return request(app.getHttpServer())
-        .get('/tasks')
-        .expect(200)
-        .expect([]);
+      return request(app.getHttpServer()).get('/tasks').expect(200).expect([]);
     });
 
     it('should return all tasks for the user', async () => {
@@ -43,15 +40,9 @@ describe('TaskController (e2e)', () => {
         status: TaskStatus.IN_PROGRESS,
       };
 
-      await request(app.getHttpServer())
-        .post('/tasks')
-        .send(task1)
-        .expect(201);
+      await request(app.getHttpServer()).post('/tasks').send(task1).expect(201);
 
-      await request(app.getHttpServer())
-        .post('/tasks')
-        .send(task2)
-        .expect(201);
+      await request(app.getHttpServer()).post('/tasks').send(task2).expect(201);
 
       // Then get all tasks
       return request(app.getHttpServer())
@@ -405,18 +396,16 @@ describe('TaskController (e2e)', () => {
         .delete(`/tasks/${taskId}`)
         .expect(200)
         .expect((res) => {
-          expect(res.body.message).toContain(`Task with ID ${taskId} deleted successfully`);
+          expect(res.body.message).toContain(
+            `Task with ID ${taskId} deleted successfully`,
+          );
         });
     });
 
     it('should return 404 when trying to get deleted task', async () => {
-      await request(app.getHttpServer())
-        .delete(`/tasks/${taskId}`)
-        .expect(200);
+      await request(app.getHttpServer()).delete(`/tasks/${taskId}`).expect(200);
 
-      return request(app.getHttpServer())
-        .get(`/tasks/${taskId}`)
-        .expect(404);
+      return request(app.getHttpServer()).get(`/tasks/${taskId}`).expect(404);
     });
 
     it('should return 404 when task does not exist', () => {

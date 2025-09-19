@@ -34,10 +34,17 @@ This is a NestJS-based todo application following Test-Driven Development (TDD) 
 
 ### Project Structure
 - `src/main.ts` - Application entry point, bootstraps NestJS app on port 3000
-- `src/app.module.ts` - Root application module
+- `src/app.module.ts` - Root application module (imports TasksModule)
 - `src/app.controller.ts` - Basic controller with GET endpoint returning "Hello World!"
 - `src/app.service.ts` - Basic service providing "Hello World!" message
+- `src/tasks/` - Tasks module directory
+  - `tasks.module.ts` - Tasks module definition
+  - `tasks.controller.ts` - Tasks REST API controller
+  - `tasks.service.ts` - Tasks business logic service
+  - `tasks.controller.spec.ts` - Tasks controller unit tests
+  - `tasks.service.spec.ts` - Tasks service unit tests
 - `test/` - End-to-end test files
+  - `task.e2e-spec.ts` - Tasks e2e tests
 
 ### Technology Stack
 - **Framework**: NestJS v11.0.1
@@ -59,10 +66,13 @@ This is a NestJS-based todo application following Test-Driven Development (TDD) 
 - Output directory: `./dist`
 
 ### Current State
-Todo application in development following TDD approach:
+Todo application in active development following TDD approach:
+- Task module structure implemented (module, controller, service)
 - Task entity with properties: id, status (enum), title, description, userId
 - PostgreSQL database with Prisma ORM integration
-- Comprehensive e2e tests for Task CRUD operations
+- Comprehensive e2e tests for Task CRUD operations implemented
+- Unit tests for controller and service components
+- TasksModule integrated into main AppModule
 - Hardcoded userId approach (no authentication yet)
 - Docker container setup for PostgreSQL database
 
@@ -86,7 +96,8 @@ interface Task {
 - Implement proper dependency injection and validation
 - Use ESLint and Prettier for code consistency
 
-### API Endpoints (Planned)
+### API Endpoints
+Tasks REST API endpoints (with e2e tests implemented):
 - `GET /tasks` - Get all tasks for user
 - `GET /tasks/:id` - Get specific task
 - `POST /tasks` - Create new task
@@ -99,9 +110,9 @@ interface Task {
 - `npx prisma studio` - Open Prisma Studio (database GUI)
 
 ## Next Steps
-1. Set up PostgreSQL Docker container
-2. Configure Prisma schema and database connection
-3. Write comprehensive e2e tests for all CRUD operations
-4. Implement Task module, controller, and service
-5. Add proper validation and error handling
+1. Implement CRUD operations in tasks controller and service
+2. Add proper validation and error handling
+3. Set up PostgreSQL Docker container
+4. Configure Prisma schema and database connection
+5. Integrate Prisma with tasks service
 6. Consider adding API documentation with Swagger
